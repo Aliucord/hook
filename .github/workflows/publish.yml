@@ -1,0 +1,27 @@
+name: Publish
+
+on:
+  push:
+    paths:
+      - .github/workflows/publish.yml
+      - core/**
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Build
+        run: |
+          ./gradlew :core:publish -Pversion=${GITHUB_REF##*/}-SNAPSHOT
+          ./gradlew :core:publish -Pversion=$(git rev-parse --short "$GITHUB_SHA")
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

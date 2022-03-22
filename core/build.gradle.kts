@@ -1,5 +1,6 @@
 plugins {
     id("com.android.library")
+    id("maven-publish")
 }
 
 dependencies {
@@ -42,5 +43,35 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            register(project.name, MavenPublication::class.java) {
+                group = "com.aliucord"
+                artifactId = "Aliuhook"
+
+                from(components["release"])
+            }
+
+            repositories {
+                val username = System.getenv("MAVEN_USERNAME")
+                val password = System.getenv("MAVEN_PASSWORD")
+
+                if (username != null && password != null) {
+                    maven {
+                        credentials {
+                            this.username = username
+                            this.password = password
+                        }
+                        setUrl("https://maven.aliucord.com/snapshots")
+                    }
+                } else {
+                    mavenLocal()
+                }
+            }
+        }
     }
 }
