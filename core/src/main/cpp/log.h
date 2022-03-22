@@ -1,6 +1,8 @@
-//
-// Created by ven on 22/03/2022.
-//
+/*
+ * This file is part of AliuHook, a library providing XposedAPI bindings to LSPlant
+ * Copyright (c) 2021 Juby210 & Vendicated
+ * Licensed under the Open Software License version 3.0
+ */
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedMacroInspection"

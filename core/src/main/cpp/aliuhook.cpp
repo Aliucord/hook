@@ -1,3 +1,9 @@
+/*
+ * This file is part of AliuHook, a library providing XposedAPI bindings to LSPlant
+ * Copyright (c) 2021 Juby210 & Vendicated
+ * Licensed under the Open Software License version 3.0
+ */
+
 #include <jni.h>
 #include <string>
 #include <lsplant.hpp>
@@ -7,9 +13,9 @@
 #include "elf_img.h"
 #include "log.h"
 
-// Method taken from https://github.com/canyie/pine/blob/8fd10e7c7f4d64bbed5710ca446bd943b047b696/enhances/src/main/cpp/enhances.cpp#L60-L69
 static size_t page_size_;
 
+// Method taken from https://github.com/canyie/pine/blob/8fd10e7c7f4d64bbed5710ca446bd943b047b696/enhances/src/main/cpp/enhances.cpp#L60-L69
 static bool Unprotect(void *addr) {
     size_t alignment = (uintptr_t) addr % page_size_;
     void *aligned_ptr = (void *) ((uintptr_t) addr - alignment);
@@ -21,13 +27,13 @@ static bool Unprotect(void *addr) {
     return true;
 }
 
-void *InlineHooker(void *target, void *hooker) {
-    if (!Unprotect(target)) {
+void *InlineHooker(void *address, void *replacement) {
+    if (!Unprotect(address)) {
         return nullptr;
     }
 
     void *origin_call;
-    if (DobbyHook(target, hooker, &origin_call) == RS_SUCCESS) {
+    if (DobbyHook(address, replacement, &origin_call) == RS_SUCCESS) {
         return origin_call;
     } else {
         return nullptr;
@@ -39,16 +45,29 @@ bool InlineUnhooker(void *func) {
 }
 
 extern "C"
+JNIEXPORT jboolean JNICALL
+Java_de_robv_android_xposed_XposedBridge_isHooked0(JNIEnv *env, jclass, jobject method) {
+    return lsplant::IsHooked(env, method);
+}
+
+extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_aliucord_hook_AliuHook_hook0(JNIEnv *env, jobject clazz, jobject original,
-                                      jobject callback) {
-    return lsplant::Hook(env, original, clazz, callback);
+Java_de_robv_android_xposed_XposedBridge_hook0(JNIEnv *env, jclass, jobject context,
+                                               jobject original,
+                                               jobject callback) {
+    return lsplant::Hook(env, original, context, callback);
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_aliucord_hook_AliuHook_unhook0(JNIEnv *env, jobject, jobject target) {
+Java_de_robv_android_xposed_XposedBridge_unhook0(JNIEnv *env, jclass, jobject target) {
     return lsplant::UnHook(env, target);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_de_robv_android_xposed_XposedBridge_deoptimize0(JNIEnv *env, jclass, jobject method) {
+    return lsplant::Deoptimize(env, method);
 }
 
 JNIEXPORT jint JNICALL

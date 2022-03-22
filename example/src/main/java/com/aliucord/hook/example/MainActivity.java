@@ -1,13 +1,23 @@
+/*
+ * This file is part of AliuHook, an android java hooking library based on lsplant
+ * Copyright (c) 2021 Juby210 & Vendicated
+ * Licensed under the Open Software License version 3.0
+ */
+
 package com.aliucord.hook.example;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.aliucord.hook.AliuHook;
+import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 
 public class MainActivity extends Activity {
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,13 +31,27 @@ public class MainActivity extends Activity {
 
         btn.setOnClickListener(v -> {
             try {
-                AliuHook.hook(MainActivity.class.getDeclaredMethod("getContent"), this);
-                tv.setText(getContent());
-            } catch (Throwable ignored) {}
+                XposedBridge.hookMethod(MainActivity.class.getDeclaredMethod("getContent"), new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        param.setResult("get hooked");
+                    }
+                });
+
+                XposedBridge.hookMethod(MainActivity.class.getDeclaredMethod("getContent"), new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        param.setResult(param.getResult() + " nerd");
+                    }
+                });
+                tv.setText(getContent() + "\nOriginal: " + XposedBridge.invokeOriginalMethod(MainActivity.class.getDeclaredMethod("getContent"), this, null));
+            } catch (Throwable t) {
+                Log.e("AliuHook example", "bruh moment", t);
+            }
         });
     }
 
     private String getContent() {
-        return "Hello World";
+        return "hook me if you can";
     }
 }

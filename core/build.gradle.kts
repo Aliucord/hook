@@ -8,7 +8,7 @@ dependencies {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = 31
     buildToolsVersion = "32.0.0"
     ndkVersion = "24.0.8215888"
 
@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         minSdk = 21
-        targetSdk = 32
+        targetSdk = 31
 
         externalNativeBuild {
             cmake {
