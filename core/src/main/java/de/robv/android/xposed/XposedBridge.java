@@ -37,6 +37,8 @@ public class XposedBridge {
 
     private static native boolean deoptimize0(Member target);
 
+    private static native boolean makeClassInheritable0(Class<?> target);
+
     private static native boolean isHooked0(Member target);
 
     private static void checkMethod(Member method) {
@@ -59,14 +61,25 @@ public class XposedBridge {
     }
 
     /**
+     * Make a final class inheritable. Removes final modifier from class and its constructors and makes
+     * constructors accessible (private -> protected)
+     * @param clazz Class to make inheritable
+     */
+    public static boolean makeClassInheritable(Class<?> clazz) {
+        if (clazz == null) throw new NullPointerException("class must not be null");
+
+        return makeClassInheritable0(clazz);
+    }
+
+    /**
      * Deoptimize a method to avoid inlining
      *
      * @param method The method to deoptimize. Generally it should be a caller of a method
      *               that is inlined.
      */
-    public static void deoptimizeMethod(Member method) {
+    public static boolean deoptimizeMethod(Member method) {
         checkMethod(method);
-        deoptimize0(method);
+        return deoptimize0(method);
     }
 
     /**
@@ -140,6 +153,7 @@ public class XposedBridge {
      * class is returned when you hook the method.
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     public static void unhookMethod(Member method, XC_MethodHook callback) {
         synchronized (hookRecords) {
             var record = hookRecords.get(method);

@@ -70,6 +70,12 @@ Java_de_robv_android_xposed_XposedBridge_deoptimize0(JNIEnv *env, jclass, jobjec
     return lsplant::Deoptimize(env, method);
 }
 
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_de_robv_android_xposed_XposedBridge_makeClassInheritable0(JNIEnv *env, jclass, jclass clazz) {
+    return lsplant::MakeClassInheritable(env, clazz);
+}
+
 JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnv *env;
