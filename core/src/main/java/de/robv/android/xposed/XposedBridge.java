@@ -35,11 +35,39 @@ public class XposedBridge {
 
     private static native boolean unhook0(Member target);
 
-    // TODO: Add public method with checks
     private static native boolean deoptimize0(Member target);
 
-    // TODO: Do we even need this
     private static native boolean isHooked0(Member target);
+
+    private static void checkMethod(Member method) {
+        if (method == null)
+            throw new NullPointerException("method must not be null");
+        if (!(method instanceof Method || method instanceof Constructor<?>))
+            throw new IllegalArgumentException("method must be a Method or Constructor");
+
+        var modifiers = method.getModifiers();
+        if (Modifier.isAbstract(modifiers))
+            throw new IllegalArgumentException("method must not be abstract");
+        if (Modifier.isNative(modifiers))
+            throw new IllegalArgumentException("method must not be native");
+
+        var clazz = method.getDeclaringClass();
+        if (clazz.isInterface())
+            throw new IllegalArgumentException("method must not belong to an interface");
+        if (Proxy.isProxyClass(method.getDeclaringClass()))
+            throw new IllegalArgumentException("method must not belong to a proxy class");
+    }
+
+    /**
+     * Deoptimize a method to avoid inlining
+     *
+     * @param method The method to deoptimize. Generally it should be a caller of a method
+     *               that is inlined.
+     */
+    public static void deoptimizeMethod(Member method) {
+        checkMethod(method);
+        deoptimize0(method);
+    }
 
     /**
      * Hook any method (or constructor) with the specified callback.
@@ -49,19 +77,8 @@ public class XposedBridge {
      * @return An object that can be used to remove the hook.
      */
     public static XC_MethodHook.Unhook hookMethod(Member method, XC_MethodHook callback) {
-        if (method == null) throw new NullPointerException("method must not be null");
+        checkMethod(method);
         if (callback == null) throw new NullPointerException("callback must not be null");
-
-        if (!(method instanceof Method || method instanceof Constructor))
-            throw new IllegalArgumentException("method must be a Method or Constructor");
-
-        var modifiers = method.getModifiers();
-        if (Modifier.isInterface(modifiers))
-            throw new IllegalArgumentException("Cannot hook interface methods");
-        if (Modifier.isAbstract(modifiers))
-            throw new IllegalArgumentException("Cannot hook abstract methods");
-        if (Modifier.isNative(modifiers))
-            throw new IllegalArgumentException("Cannot hook native methods");
 
         HookInfo hookRecord;
         synchronized (hookRecords) {
@@ -159,28 +176,32 @@ public class XposedBridge {
      */
     public static Object invokeOriginalMethod(Member method, Object thisObject, Object[] args)
             throws NullPointerException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        if (method == null) throw new NullPointerException("method must not be null");
-        if (!(method instanceof Method || method instanceof Constructor<?>))
-            throw new IllegalArgumentException("method must be of type Method or Constructor");
-
-        if (args == null) {
+        if (args == null)
             args = EMPTY_ARRAY;
-        }
 
         var hookRecord = hookRecords.get(method);
         try {
-            if (hookRecord == null) return invokeMethod(method, thisObject, args);
-            return invokeMethod(hookRecord.backup, thisObject, args);
+            // Checking method is not needed if we found hookRecord
+            if (hookRecord != null)
+                return invokeMethod(hookRecord.backup, thisObject, args);
+
+            checkMethod(method);
+            return invokeMethod(method, thisObject, args);
         } catch (InstantiationException ex) {
-            throw new IllegalArgumentException("The class this Constructor belongs to is abstract and can't be instantiated");
+            // This should never be reached
+            throw new IllegalArgumentException("The class this Constructor belongs to is abstract and cannot be instantiated");
         }
     }
 
     private static Object invokeMethod(Member member, Object thisObject, Object[] args) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         if (member instanceof Method) {
-            return ((Method) member).invoke(thisObject, args);
+            var method = (Method) member;
+            method.setAccessible(true);
+            return method.invoke(thisObject, args);
         } else {
-            return ((Constructor<?>) member).newInstance(args);
+            var ctor = (Constructor<?>) member;
+            ctor.setAccessible(true);
+            return ctor.newInstance(args);
         }
     }
 
@@ -246,7 +267,14 @@ public class XposedBridge {
         public HookInfo(Member method) {
             this.method = method;
             isStatic = Modifier.isStatic(method.getModifiers());
-            returnType = method instanceof Method ? ((Method) method).getReturnType() : null;
+            if (method instanceof Method) {
+                var rt = ((Method) method).getReturnType();
+                if (!rt.isPrimitive()) {
+                    returnType = rt;
+                    return;
+                }
+            }
+            returnType = null;
         }
 
         public Object callback(Object[] args) throws Throwable {
