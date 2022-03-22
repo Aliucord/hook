@@ -14,6 +14,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <string_view>
+#include <string>
 #include "log.h"
 #include <fcntl.h>
 
@@ -188,7 +189,7 @@ Elf_Addr ElfImg::GetSymbolOffset(std::string_view name, bool warn_if_missing) co
             }
         }
     }
-    if (warn_if_missing) LOGE("Symbol %s not found in elf %s", name, elf);
+    if (warn_if_missing) LOGE("Symbol %s not found in elf %s", std::string(name).c_str(), elf);
     return 0;
 }
 
