@@ -34,12 +34,12 @@ dependencies {
 #### Now you're ready to get hooking! No init needed
 
 ```java
-XposedBridge.hookMethod(Activity.class.getDeclaredMethod("onCreate",Bundle.class),new XC_MethodHook(){
-@Override
-public void beforeHookedMethod(MethodHookParam param)throws Throwable{
-        Log.d(TAG,"Activity"+param.thisObject+"about to be created!");
-        }
-        });
+XposedBridge.hookMethod(Activity.class.getDeclaredMethod("onCreate", Bundle.class), new XC_MethodHook() {
+    @Override
+    public void beforeHookedMethod(MethodHookParam param) throws Throwable {
+        Log.d(TAG, "Activity" + param.thisObject + "about to be created!");
+    }
+});
 ```
 
 ## Credit
