@@ -15,6 +15,7 @@ package de.robv.android.xposed.callbacks;
  *
  * @param <T> The class of the callback.
  */
+@SuppressWarnings({"unused"})
 public interface IXUnhook<T> {
     /**
      * Returns the callback that has been registered.

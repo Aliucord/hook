@@ -12,6 +12,7 @@
 #include <bits/sysconf.h>
 #include "elf_img.h"
 #include "log.h"
+#include "disable_profile_saver.h"
 
 static size_t page_size_;
 
@@ -74,6 +75,14 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_de_robv_android_xposed_XposedBridge_makeClassInheritable0(JNIEnv *env, jclass, jclass clazz) {
     return lsplant::MakeClassInheritable(env, clazz);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_de_robv_android_xposed_XposedBridge_disableProfileSaver(JNIEnv *env, jclass) {
+    jint version = env->GetVersion();
+    pine::ElfImg art("libart.so", version);
+    return disableProfileSaver(env->GetVersion(), &art);
 }
 
 JNIEXPORT jint JNICALL

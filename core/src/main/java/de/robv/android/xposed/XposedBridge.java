@@ -15,6 +15,7 @@ import android.util.Log;
 import java.lang.reflect.*;
 import java.util.*;
 
+@SuppressWarnings({"unused", "JavaDoc"})
 public class XposedBridge {
     static {
         try {
@@ -41,6 +42,20 @@ public class XposedBridge {
 
     private static native boolean isHooked0(Member target);
 
+    /**
+     * Disable profile saver to try to prevent ART ahead of time compilation
+     * which may lead to aggressive method inlining, thus resulting in those
+     * methods being unhookable unless you first call {@link #deoptimizeMethod(Member)} on all callers
+     * of that method.
+     *
+     * You could also try deleting /data/misc/profiles/cur/0/com.YOURPACKAGE/primary.prof
+     *
+     * See https://source.android.com/devices/tech/dalvik/configure#how_art_works for more info
+     *
+     * @return Whether disabling profile saver succeeded
+     */
+    public static native boolean disableProfileSaver();
+
     private static void checkMethod(Member method) {
         if (method == null)
             throw new NullPointerException("method must not be null");
@@ -63,6 +78,7 @@ public class XposedBridge {
     /**
      * Make a final class inheritable. Removes final modifier from class and its constructors and makes
      * constructors accessible (private -> protected)
+     *
      * @param clazz Class to make inheritable
      */
     public static boolean makeClassInheritable(Class<?> clazz) {
@@ -306,6 +322,17 @@ public class XposedBridge {
 
             var hooks = callbacks.getSnapshot();
             var hookCount = hooks.length;
+
+            // shouldn't happen since 0 remaining callbacks leads to unhook
+            if (hookCount == 0) {
+                try {
+                    return invokeMethod(backup, param.thisObject, param.args);
+                } catch (InvocationTargetException e) {
+                    //noinspection ConstantConditions
+                    throw e.getCause();
+                }
+            }
+
             int beforeIdx = 0;
             do {
                 try {
@@ -326,15 +353,13 @@ public class XposedBridge {
 
             if (!param.returnEarly) {
                 try {
-                    param.setResult(invokeOriginalMethod(backup, param.thisObject, param.args));
+                    param.setResult(invokeMethod(backup, param.thisObject, param.args));
                 } catch (InvocationTargetException e) {
                     param.setThrowable(e.getCause());
                 }
             }
 
-            // Aliucord changed: Do all hooks instead of only the ones up until to the preHook that setResult
-            // FIXME? which behaviour do we want?
-            int afterIdx = 0;
+            int afterIdx = beforeIdx - 1;
             do {
                 Object lastResult = param.getResult();
                 Throwable lastThrowable = param.getThrowable();
@@ -349,7 +374,7 @@ public class XposedBridge {
                     else
                         param.setThrowable(lastThrowable);
                 }
-            } while (++afterIdx < hookCount);
+            } while (--afterIdx >= 0);
 
             var result = param.getResultOrThrowable();
             if (returnType != null)

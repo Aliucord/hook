@@ -7,7 +7,7 @@ project("aliuhook")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(aliuhook SHARED aliuhook.cpp elf_img.cpp)
+add_library(aliuhook SHARED aliuhook.cpp elf_img.cpp disable_profile_saver.cpp)
 
 find_package(lsplant REQUIRED CONFIG)
 find_package(dobby REQUIRED CONFIG)

@@ -15,6 +15,7 @@ package de.robv.android.xposed.callbacks;
  * <p>
  * The actual (abstract) callback methods are added by subclasses.
  */
+@SuppressWarnings({"unused", "JavaDoc"})
 public abstract class XCallback implements Comparable<XCallback> {
     /**
      * Callback priority, higher number means earlier execution.
