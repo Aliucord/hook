@@ -10,23 +10,23 @@
 #include "log.h"
 
 static bool stub_miui(bool a, uint16_t *b, bool c) {
-    LOGI("Ignoring profile saver request");
+    LOGD("Ignoring profile saver request");
     return true;
 }
 
 static bool stub_below_26(uint16_t *a) {
-    LOGI("Ignoring profile saver request");
+    LOGD("Ignoring profile saver request");
     return true;
 }
 
 
 static bool stub_below_31(bool a, uint16_t *b) {
-    LOGI("Ignoring profile saver request");
+    LOGD("Ignoring profile saver request");
     return true;
 }
 
 static bool stub_above_31(bool a, bool b, uint16_t *c) {
-    LOGI("Ignoring profile saver request");
+    LOGD("Ignoring profile saver request");
     return true;
 }
 

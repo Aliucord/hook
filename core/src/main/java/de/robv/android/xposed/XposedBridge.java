@@ -17,6 +17,7 @@ import java.util.*;
 
 @SuppressWarnings({"unused", "JavaDoc"})
 public class XposedBridge {
+    private static final String TAG = "AliuHook-XposedBridge";
     static {
         try {
             callbackMethod = XposedBridge.HookInfo.class.getMethod("callback", Object[].class);
@@ -385,6 +386,6 @@ public class XposedBridge {
 
     // Aliucord changed: private, so people don't abuse this
     private static void log(Throwable t) {
-        Log.e("XposedBridge", "Uncaught Exception", t);
+        Log.e(TAG, "Uncaught Exception", t);
     }
 }
