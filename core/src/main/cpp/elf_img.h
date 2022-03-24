@@ -41,18 +41,11 @@ typedef Elf32_Off Elf_Off;
 namespace pine {
     class ElfImg {
     public:
-        ElfImg(const char* elf, jint android_version, bool warn_if_symtab_not_found = true) {
-            // Pine changed: Relative path support
-            this->elf = elf;
-            this->android_version = android_version;
+        ElfImg() {}
 
-            if (elf[0] == '/') {
-                Open(elf, warn_if_symtab_not_found);
-            } else {
-                // Relative path
-                RelativeOpen(elf, warn_if_symtab_not_found);
-            }
-        }
+        void Init(const char* elf, jint android_version);
+
+
         // Pine changed: Rename some function & make some function const.
         Elf_Addr GetSymbolOffset(std::string_view, bool warn_if_missing = true) const;
         void* GetSymbolAddress(std::string_view, bool warn_if_missing = true) const;

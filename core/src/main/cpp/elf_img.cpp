@@ -25,6 +25,18 @@ inline bool CanRead(const char *file) {
     return access(file, R_OK) == 0;
 }
 
+void ElfImg::Init(const char *elf, jint android_version) {
+    this->elf = elf;
+    this->android_version = android_version;
+
+    if (elf[0] == '/') {
+        Open(elf, true);
+    } else {
+        // Relative path
+        RelativeOpen(elf, true);
+    }
+}
+
 void ElfImg::Open(const char *path, bool warn_if_symtab_not_found) {
     //load elf
     int fd = open(path, O_RDONLY | O_CLOEXEC); // Pine changed: add O_CLOEXEC to flags

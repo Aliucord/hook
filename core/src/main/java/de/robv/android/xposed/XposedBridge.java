@@ -18,6 +18,7 @@ import java.util.*;
 @SuppressWarnings({"unused", "JavaDoc"})
 public class XposedBridge {
     private static final String TAG = "AliuHook-XposedBridge";
+
     static {
         try {
             callbackMethod = XposedBridge.HookInfo.class.getMethod("callback", Object[].class);
@@ -48,9 +49,9 @@ public class XposedBridge {
      * which may lead to aggressive method inlining, thus resulting in those
      * methods being unhookable unless you first call {@link #deoptimizeMethod(Member)} on all callers
      * of that method.
-     *
+     * <p>
      * You could also try deleting /data/misc/profiles/cur/0/com.YOURPACKAGE/primary.prof
-     *
+     * <p>
      * See https://source.android.com/devices/tech/dalvik/configure#how_art_works for more info
      *
      * @return Whether disabling profile saver succeeded
@@ -75,6 +76,15 @@ public class XposedBridge {
         if (Proxy.isProxyClass(method.getDeclaringClass()))
             throw new IllegalArgumentException("method must not belong to a proxy class");
     }
+
+    /**
+     * Disables HiddenApi restrictions, thus allowing you access to all private interfaces.
+     * <p>
+     *
+     * @return Whether disabling restrictions succeeded
+     * @see <a href="https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces">https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces</a>
+     */
+    public static native boolean disableHiddenApiRestrictions();
 
     /**
      * Make a final class inheritable. Removes final modifier from class and its constructors and makes

@@ -12,7 +12,20 @@
 #include <bits/sysconf.h>
 #include "elf_img.h"
 #include "log.h"
-#include "disable_profile_saver.h"
+#include "profile_saver.h"
+#include "hidden_api.h"
+#include <sys/system_properties.h>
+#include <cstdlib>
+#include "aliuhook.h"
+
+int AliuHook::android_version = -1;
+pine::ElfImg AliuHook::elf_img; // NOLINT(cert-err58-cpp)
+
+void AliuHook::init(int version) {
+    elf_img.Init("libart.so", version);
+    android_version = version;
+}
+
 
 static size_t page_size_;
 
@@ -80,9 +93,13 @@ Java_de_robv_android_xposed_XposedBridge_makeClassInheritable0(JNIEnv *env, jcla
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_de_robv_android_xposed_XposedBridge_disableProfileSaver(JNIEnv *env, jclass) {
-    jint version = env->GetVersion();
-    pine::ElfImg art("libart.so", version);
-    return disableProfileSaver(env->GetVersion(), &art);
+    return disable_profile_saver();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_de_robv_android_xposed_XposedBridge_disableHiddenApiRestrictions(JNIEnv *env, jclass) {
+    return disable_hidden_api();
 }
 
 JNIEXPORT jint JNICALL
@@ -93,14 +110,28 @@ JNI_OnLoad(JavaVM *vm, void *) {
     }
 
     page_size_ = static_cast<const size_t>(sysconf(_SC_PAGESIZE));
-    jint android_version = env->GetVersion();
 
-    pine::ElfImg art("libart.so", android_version);
+    {
+        char version_str[PROP_VALUE_MAX];
+        if (!__system_property_get("ro.build.version.sdk", version_str)) {
+            LOGE("Failed to obtain SDK int");
+            return JNI_ERR;
+        };
+        long version = std::strtol(version_str, nullptr, 10);
+
+        if (version == 0) {
+            LOGE("Invalid SDK int %s", version_str);
+            return JNI_ERR;
+        }
+
+        AliuHook::init(version);
+    }
+
     lsplant::InitInfo initInfo{
             .inline_hooker = InlineHooker,
             .inline_unhooker = InlineUnhooker,
-            .art_symbol_resolver = [&art](std::string_view symbol) -> void * {
-                void *out = reinterpret_cast<void *>(art.GetSymbolAddress(symbol));
+            .art_symbol_resolver = [](std::string_view symbol) -> void * {
+                void *out = reinterpret_cast<void *>(AliuHook::elf_img.GetSymbolAddress(symbol));
                 return out;
             }
     };

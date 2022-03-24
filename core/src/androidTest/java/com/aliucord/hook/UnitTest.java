@@ -1,13 +1,17 @@
 package com.aliucord.hook;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import android.os.Build;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 
 import de.robv.android.xposed.*;
 
@@ -111,4 +115,48 @@ public class UnitTest {
         XposedBridge.hookMethod(proxy.getDeclaredMethod("interfaceMethod"), XC_MethodReplacement.DO_NOTHING);
     }
 
+    @Test
+    public void shouldDisableProfileSaver() {
+        assertTrue(XposedBridge.disableProfileSaver());
+    }
+
+    @Test
+    public void shouldBypassHiddenApi() throws Throwable {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            boolean hiddenMethodFound = true;
+            boolean hiddenFieldFound = true;
+
+            // Should fail due to being hidden api
+            try {
+                obtainHiddenMethod();
+            } catch (NoSuchMethodException ignored) {
+                hiddenMethodFound = false;
+            }
+            try {
+                obtainHiddenField();
+            } catch (NoSuchFieldException ignored) {
+                hiddenFieldFound = false;
+            }
+
+            assertFalse("Method found without bypass", hiddenMethodFound);
+            assertFalse("Field found without bypass", hiddenFieldFound);
+
+            assertTrue("Failed to disable hidden api restrictions", XposedBridge.disableHiddenApiRestrictions());
+
+            // Now should work
+            var method = obtainHiddenMethod();
+            var field = obtainHiddenField();
+
+            assertEquals(method.getName(), "setHiddenApiExemptions");
+            assertEquals(field.getType(), Class.forName("dalvik.system.VMRuntime$HiddenApiUsageLogger"));
+        }
+    }
+
+    private Method obtainHiddenMethod() throws Throwable {
+        return Class.forName("dalvik.system.VMRuntime").getDeclaredMethod("setHiddenApiExemptions", String[].class);
+    }
+
+    private Field obtainHiddenField() throws Throwable {
+        return Class.forName("dalvik.system.VMRuntime").getDeclaredField("hiddenApiUsageLogger");
+    }
 }

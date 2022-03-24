@@ -13,6 +13,9 @@ Additionally, XposedBridge contains these new methods:
 - `disableProfileSaver` - Disables Android Profile Saver to try to prevent ahead of time compilation
   of code which leads to aggressive inlining,
   see https://source.android.com/devices/tech/dalvik/configure#how_art_works
+- `disableHiddenApiRestrictions` - Disables all hidden api restrictions, allowing full access to
+  internal Android APIs,
+  see https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces
 
 ## Supported Android versions (same as LSPlant)
 
