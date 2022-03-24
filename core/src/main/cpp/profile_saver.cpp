@@ -6,7 +6,6 @@
 
 #include "profile_saver.h"
 #include <dobby.h>
-#include "elf_img.h"
 #include "aliuhook.h"
 
 #include "log.h"
@@ -20,29 +19,27 @@ static void *backup = nullptr;
 
 bool disable_profile_saver() {
     if (backup) {
-        LOGW("disable_profile_saver called multiple times - It is already disabled.");
+        LOGW("disableProfileSaver called multiple times - It is already disabled.");
         return true;
     }
 
     void *process_profiling_info;
-    {
-        // MIUI moment, see https://github.com/canyie/pine/commit/ef0f5fb08e6aa42656065e431c65106b41f87799
-        process_profiling_info = AliuHook::elf_img.GetSymbolAddress(
-                "_ZN3art12ProfileSaver20ProcessProfilingInfoEbPtb", false);
-        if (!process_profiling_info) {
-            const char *symbol;
-            if (AliuHook::android_version < 26) {
-                // https://android.googlesource.com/platform/art/+/nougat-release/runtime/jit/profile_saver.cc#270
-                symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEPt";
-            } else if (AliuHook::android_version < 31) {
-                // https://android.googlesource.com/platform/art/+/android11-release/runtime/jit/profile_saver.cc#514
-                symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEbPt";
-            } else {
-                // https://android.googlesource.com/platform/art/+/android12-release/runtime/jit/profile_saver.cc#823
-                symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEbbPt";
-            }
-            process_profiling_info = AliuHook::elf_img.GetSymbolAddress(symbol);
+    // MIUI moment, see https://github.com/canyie/pine/commit/ef0f5fb08e6aa42656065e431c65106b41f87799
+    process_profiling_info = AliuHook::elf_img.GetSymbolAddress(
+            "_ZN3art12ProfileSaver20ProcessProfilingInfoEbPtb", false);
+    if (!process_profiling_info) {
+        const char *symbol;
+        if (AliuHook::android_version < 26) {
+            // https://android.googlesource.com/platform/art/+/nougat-release/runtime/jit/profile_saver.cc#270
+            symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEPt";
+        } else if (AliuHook::android_version < 31) {
+            // https://android.googlesource.com/platform/art/+/android11-release/runtime/jit/profile_saver.cc#514
+            symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEbPt";
+        } else {
+            // https://android.googlesource.com/platform/art/+/android12-release/runtime/jit/profile_saver.cc#823
+            symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEbbPt";
         }
+        process_profiling_info = AliuHook::elf_img.GetSymbolAddress(symbol);
     }
 
     if (!process_profiling_info) {

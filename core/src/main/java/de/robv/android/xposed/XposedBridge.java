@@ -58,6 +58,15 @@ public class XposedBridge {
      */
     public static native boolean disableProfileSaver();
 
+    /**
+     * Disables HiddenApi restrictions, thus allowing you access to all private interfaces.
+     * <p>
+     *
+     * @return Whether disabling hidden api succeeded
+     * @see <a href="https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces">https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces</a>
+     */
+    public static native boolean disableHiddenApiRestrictions();
+
     private static void checkMethod(Member method) {
         if (method == null)
             throw new NullPointerException("method must not be null");
@@ -76,15 +85,6 @@ public class XposedBridge {
         if (Proxy.isProxyClass(method.getDeclaringClass()))
             throw new IllegalArgumentException("method must not belong to a proxy class");
     }
-
-    /**
-     * Disables HiddenApi restrictions, thus allowing you access to all private interfaces.
-     * <p>
-     *
-     * @return Whether disabling restrictions succeeded
-     * @see <a href="https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces">https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces</a>
-     */
-    public static native boolean disableHiddenApiRestrictions();
 
     /**
      * Make a final class inheritable. Removes final modifier from class and its constructors and makes

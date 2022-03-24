@@ -141,7 +141,7 @@ public class UnitTest {
             assertFalse("Method found without bypass", hiddenMethodFound);
             assertFalse("Field found without bypass", hiddenFieldFound);
 
-            assertTrue("Failed to disable hidden api restrictions", XposedBridge.disableHiddenApiRestrictions());
+            XposedBridge.disableHiddenApiRestrictions();
 
             // Now should work
             var method = obtainHiddenMethod();

@@ -99,7 +99,7 @@ Java_de_robv_android_xposed_XposedBridge_disableProfileSaver(JNIEnv *env, jclass
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_de_robv_android_xposed_XposedBridge_disableHiddenApiRestrictions(JNIEnv *env, jclass) {
-    return disable_hidden_api();
+    return disable_hidden_api(env);
 }
 
 JNIEXPORT jint JNICALL

@@ -1,41 +1,34 @@
-//
-// Created by ven on 24/03/2022.
-//
+/*
+ * This file is part of AliuHook, a library providing XposedAPI bindings to LSPlant
+ * Copyright (c) 2021 Juby210 & Vendicated
+ * Licensed under the Open Software License version 3.0
+ */
 
 #include "hidden_api.h"
 
-#include <dobby.h>
-#include "elf_img.h"
 #include "log.h"
 #include "aliuhook.h"
 
-static int replacer() {
-    return 0;
-}
-
-bool disable_hidden_api() {
-    bool success = true;
-
-#define HOOK(symbol) { \
-    void* addr = AliuHook::elf_img.GetSymbolAddress((symbol), false); \
-    void* backup; \
-    if (addr) { \
-        DobbyHook(addr, reinterpret_cast<void*>(replacer), &backup); \
-    } else { \
-        LOGE("HiddenAPI bypass: Couldn't find symbol " symbol); \
-        success = false; \
-    } \
-}
-
-    if (AliuHook::android_version >= 29) {
-        HOOK("_ZN3art9hiddenapi6detail28ShouldDenyAccessToMemberImplINS_9ArtMethodEEEbPT_NS0_7ApiListENS0_12AccessMethodE");
-        HOOK("_ZN3art9hiddenapi6detail28ShouldDenyAccessToMemberImplINS_8ArtFieldEEEbPT_NS0_7ApiListENS0_12AccessMethodE");
-    } else if (AliuHook::android_version == 28) {
-        HOOK("_ZN3art9hiddenapi6detail19GetMemberActionImplINS_9ArtMethodEEENS0_6ActionEPT_NS_20HiddenApiAccessFlags7ApiListES4_NS0_12AccessMethodE");
-        HOOK("_ZN3art9hiddenapi6detail19GetMemberActionImplINS_8ArtFieldEEENS0_6ActionEPT_NS_20HiddenApiAccessFlags7ApiListES4_NS0_12AccessMethodE");
+bool disable_hidden_api(JNIEnv *env) {
+    // Hidden api introduced in sdk 29
+    if (AliuHook::android_version < 29) {
+        return true;
     }
 
-    return success;
+    void *addr = AliuHook::elf_img.GetSymbolAddress(
+            "_ZN3artL32VMRuntime_setHiddenApiExemptionsEP7_JNIEnvP7_jclassP13_jobjectArray");
+    if (!addr) {
+        LOGE("HiddenAPI: Didn't find setHiddenApiExemptions");
+        return false;
+    }
 
-#undef HOOK
+    jclass stringClass = env->FindClass("java/lang/String");
+    // L is basically wildcard for everything
+    jobjectArray args = env->NewObjectArray(1, stringClass, env->NewStringUTF("L"));
+
+    auto func = reinterpret_cast<void (*)(JNIEnv *, jclass, jobjectArray)>(addr);
+    // jclass arg is not used so pass string class for the memes
+    func(env, stringClass, args);
+
+    return true;
 }
