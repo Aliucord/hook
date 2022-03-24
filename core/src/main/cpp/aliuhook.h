@@ -7,6 +7,10 @@
 
 #include "elf_img.h"
 
+void *InlineHooker(void *, void *);
+
+bool InlineUnhooker(void *);
+
 class AliuHook {
 public:
     static pine::ElfImg elf_img;

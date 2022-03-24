@@ -47,10 +47,14 @@ bool disable_profile_saver() {
         return false;
     }
 
-    DobbyHook(process_profiling_info, reinterpret_cast<void *>(replace_process_profiling_info),
-              &backup);
+    backup = InlineHooker(process_profiling_info,
+                          reinterpret_cast<void *>(replace_process_profiling_info));
 
-    LOGI("Successfully disabled ProfileSaver");
-
-    return true;
+    if (backup) {
+        LOGI("Successfully disabled ProfileSaver");
+        return true;
+    } else {
+        LOGE("Failed to disable ProfileSaver");
+        return false;
+    }
 }
