@@ -16,6 +16,7 @@
 #include "hidden_api.h"
 #include <sys/system_properties.h>
 #include <cstdlib>
+#include <cerrno>
 #include "aliuhook.h"
 
 int AliuHook::android_version = -1;
@@ -26,14 +27,21 @@ void AliuHook::init(int version) {
     android_version = version;
 }
 
-
 static size_t page_size_;
 
-// Method taken from https://github.com/canyie/pine/blob/8fd10e7c7f4d64bbed5710ca446bd943b047b696/enhances/src/main/cpp/enhances.cpp#L60-L69
+// Macros to align addresses to page boundaries
+#define ALIGN_DOWN(addr, page_size)         ((addr) & -(page_size))
+#define ALIGN_UP(addr, page_size)           (((addr) + ((page_size) - 1)) & ~((page_size) - 1))
+
 static bool Unprotect(void *addr) {
-    size_t alignment = (uintptr_t) addr % page_size_;
-    void *aligned_ptr = (void *) ((uintptr_t) addr - alignment);
-    int result = mprotect(aligned_ptr, page_size_, PROT_READ | PROT_WRITE | PROT_EXEC);
+    auto addr_uint = reinterpret_cast<uintptr_t>(addr);
+    auto page_aligned_prt = reinterpret_cast<void *>(ALIGN_DOWN(addr_uint, page_size_));
+    size_t size = page_size_;
+    if (ALIGN_UP(addr_uint + page_size_, page_size_) != ALIGN_UP(addr_uint, page_size_)) {
+        size += page_size_;
+    }
+
+    int result = mprotect(page_aligned_prt, size, PROT_READ | PROT_WRITE | PROT_EXEC);
     if (result == -1) {
         LOGE("mprotect failed for %p: %s (%d)", addr, strerror(errno), errno);
         return false;
@@ -92,7 +100,7 @@ Java_de_robv_android_xposed_XposedBridge_makeClassInheritable0(JNIEnv *env, jcla
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_de_robv_android_xposed_XposedBridge_disableProfileSaver(JNIEnv *env, jclass) {
+Java_de_robv_android_xposed_XposedBridge_disableProfileSaver(JNIEnv *, jclass) {
     return disable_profile_saver();
 }
 
@@ -116,7 +124,7 @@ JNI_OnLoad(JavaVM *vm, void *) {
         if (!__system_property_get("ro.build.version.sdk", version_str)) {
             LOGE("Failed to obtain SDK int");
             return JNI_ERR;
-        };
+        }
         long version = std::strtol(version_str, nullptr, 10);
 
         if (version == 0) {
@@ -124,7 +132,7 @@ JNI_OnLoad(JavaVM *vm, void *) {
             return JNI_ERR;
         }
 
-        AliuHook::init(version);
+        AliuHook::init(static_cast<int>(version));
     }
 
     lsplant::InitInfo initInfo{
