@@ -30,6 +30,7 @@ repositories {
 }
 
 dependencies {
+    // or change main-SNAPSHOT to short commit hash to target a specific commit
     implementation "com.aliucord:Aliuhook:main-SNAPSHOT"
 }
 ```
@@ -45,8 +46,9 @@ XposedBridge.hookMethod(Activity.class.getDeclaredMethod("onCreate", Bundle.clas
 });
 ```
 
-## Credit
+## Credits
 
-- [LSPlant](https://github.com/LSPosed/LSPlant)
-- [Pine](https://github.com/canyie/Pine)
-- [Original Xposed API](https://github.com/rovo89/XposedBridge)
+- [LSPlant](https://github.com/LSPosed/LSPlant) obviously
+- [Dobby](https://github.com/LSPosed/Dobby) - a lightweight, multi-platform, multi-architecture hook framework
+- [Pine](https://github.com/canyie/Pine) - AliuHook uses Pine's ElfImg parser
+- [Original Xposed API](https://github.com/rovo89/XposedBridge) 
