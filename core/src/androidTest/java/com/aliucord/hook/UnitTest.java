@@ -27,9 +27,6 @@ public class UnitTest {
         counter++;
     }
 
-    @SuppressWarnings("JavaJniMissingFunction")
-    public native void method0();
-
     static abstract class AbstractClass {
         abstract void abstractMethod();
     }
@@ -75,6 +72,21 @@ public class UnitTest {
     }
 
     @Test
+    @SuppressWarnings("ConstantConditions")
+    public void shouldHookNative() throws Throwable {
+        var method = UnitTest.class.getDeclaredMethod("shouldHookNative");
+
+        var isHooked = XposedBridge.class.getDeclaredMethod("isHooked0", Member.class);
+        isHooked.setAccessible(true);
+
+        assertFalse((boolean) isHooked.invoke(null, method));
+
+        XposedBridge.hookMethod(isHooked, XC_MethodReplacement.returnConstant(true));
+
+        assertTrue((boolean) isHooked.invoke(null, method));
+    }
+
+    @Test
     public void shouldReplace() throws Throwable {
         var countMethod = UnitTest.class.getDeclaredMethod("count");
         counter = 0;
@@ -102,17 +114,6 @@ public class UnitTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotHookField() throws Throwable {
         XposedBridge.hookMethod(UnitTest.class.getDeclaredField("counter"), XC_MethodReplacement.DO_NOTHING);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldNotHookNative() throws Throwable {
-        XposedBridge.hookMethod(UnitTest.class.getDeclaredMethod("method0"), XC_MethodReplacement.DO_NOTHING);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldNotHookProxyClass() throws Throwable {
-        var proxy = Proxy.getProxyClass(UnitTest.class.getClassLoader(), Interface.class);
-        XposedBridge.hookMethod(proxy.getDeclaredMethod("interfaceMethod"), XC_MethodReplacement.DO_NOTHING);
     }
 
     @Test

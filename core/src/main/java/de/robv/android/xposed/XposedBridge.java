@@ -42,6 +42,7 @@ public class XposedBridge {
 
     private static native boolean makeClassInheritable0(Class<?> target);
 
+    // Not used for now
     private static native boolean isHooked0(Member target);
 
     /**
@@ -76,14 +77,15 @@ public class XposedBridge {
         var modifiers = method.getModifiers();
         if (Modifier.isAbstract(modifiers))
             throw new IllegalArgumentException("method must not be abstract");
-        if (Modifier.isNative(modifiers))
-            throw new IllegalArgumentException("method must not be native");
+    }
 
-        var clazz = method.getDeclaringClass();
-        if (clazz.isInterface())
-            throw new IllegalArgumentException("method must not belong to an interface");
-        if (Proxy.isProxyClass(method.getDeclaringClass()))
-            throw new IllegalArgumentException("method must not belong to a proxy class");
+    /**
+     * Check if a method is hooked
+     * @param method The method to check
+     * @return true if method is hooked
+     */
+    public static boolean isHooked(Member method) {
+        return hookRecords.containsKey(method);
     }
 
     /**
