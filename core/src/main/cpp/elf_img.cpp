@@ -164,7 +164,7 @@ ElfImg::~ElfImg() {
     }
 }
 
-Elf_Addr ElfImg::GetSymbolOffset(std::string_view name, bool warn_if_missing) const {
+Elf_Addr ElfImg::GetSymbolOffset(std::string_view name, bool warn_if_missing, bool match_prefix) const {
     Elf_Addr _offset = 0;
 
     //search dynmtab
@@ -172,14 +172,16 @@ Elf_Addr ElfImg::GetSymbolOffset(std::string_view name, bool warn_if_missing) co
         Elf_Sym *sym = dynsym_start;
         char *strings = (char *) strtab_start;
         int k;
-        for (k = 0; k < dynsym_count; k++, sym++)
-            if (name.compare(strings + sym->st_name) == 0) {
+        for (k = 0; k < dynsym_count; k++, sym++) {
+            auto s = std::string_view(strings + sym->st_name);
+            if (name.compare(s) == 0 || (match_prefix && s.starts_with(name))) {
                 _offset = sym->st_value;
                 // BEGIN Pine changed: Remove log
                 // LOGD("find %s: %x\n", elf, _offset);
                 // END Pine changed: Remove log
                 return _offset;
             }
+        }
     }
 
     //search symtab
@@ -191,7 +193,8 @@ Elf_Addr ElfImg::GetSymbolOffset(std::string_view name, bool warn_if_missing) co
                                                      symstr_offset_for_symtab +
                                                      symtab_start[i].st_name);
             if (st_type == STT_FUNC && symtab_start[i].st_size) {
-                if (name.compare(st_name) == 0) {
+                auto s = std::string_view(st_name);
+                if (name.compare(s) == 0 || (match_prefix && s.starts_with(name))) {
                     _offset = symtab_start[i].st_value;
                     // BEGIN Pine changed: Remove log
                     // LOGD("find %s: %x\n", elf, _offset);
@@ -205,8 +208,8 @@ Elf_Addr ElfImg::GetSymbolOffset(std::string_view name, bool warn_if_missing) co
     return 0;
 }
 
-void *ElfImg::GetSymbolAddress(std::string_view name, bool warn_if_missing) const {
-    Elf_Addr offset = GetSymbolOffset(name, warn_if_missing);
+void *ElfImg::GetSymbolAddress(std::string_view name, bool warn_if_missing, bool match_prefix) const {
+    Elf_Addr offset = GetSymbolOffset(name, warn_if_missing, match_prefix);
     if (offset > 0 && base != nullptr) {
         // Pine changed: Use uintptr_t instead of size_t
         // return reinterpret_cast<void *>((size_t) base + offset - bias);

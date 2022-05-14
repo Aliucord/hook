@@ -139,8 +139,10 @@ JNI_OnLoad(JavaVM *vm, void *) {
             .inline_hooker = InlineHooker,
             .inline_unhooker = InlineUnhooker,
             .art_symbol_resolver = [](std::string_view symbol) -> void * {
-                void *out = reinterpret_cast<void *>(AliuHook::elf_img.GetSymbolAddress(symbol));
-                return out;
+                return AliuHook::elf_img.GetSymbolAddress(symbol, false, false);
+            },
+            .art_symbol_prefix_resolver = [](std::string_view symbol) -> void * {
+                return AliuHook::elf_img.GetSymbolAddress(symbol, false, true);
             }
     };
 

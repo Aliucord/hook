@@ -47,8 +47,8 @@ namespace pine {
 
 
         // Pine changed: Rename some function & make some function const.
-        Elf_Addr GetSymbolOffset(std::string_view, bool warn_if_missing = true) const;
-        void* GetSymbolAddress(std::string_view, bool warn_if_missing = true) const;
+        Elf_Addr GetSymbolOffset(std::string_view, bool warn_if_missing = true, bool match_prefix = false) const;
+        void* GetSymbolAddress(std::string_view, bool warn_if_missing = true, bool match_prefix = false) const;
 
         ~ElfImg();
 

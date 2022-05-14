@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.lsposed.lsplant:lsplant:3.2")
+    implementation("org.lsposed.lsplant:lsplant:4.0-aliucord.1")
     implementation("io.github.vvb2060.ndk:dobby:1.2")
 
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
