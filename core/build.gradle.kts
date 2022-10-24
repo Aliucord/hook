@@ -62,12 +62,6 @@ android {
     }
 }
 
-afterEvaluate {
-    tasks.forEach {
-        println("${it.name} ${it.outputs.files.files.joinToString { it.absolutePath }}")
-    }
-}
-
 // fuck you agp
 tasks.register("buildDexRelease") {
     outputs.dir(buildDir.resolve("intermediates/dex/"))
