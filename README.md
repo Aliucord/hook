@@ -19,7 +19,7 @@ Additionally, XposedBridge contains these new methods:
 
 ## Supported Android versions (same as LSPlant)
 
-- Android 5.0 - 13 (API level 21 - 33)
+- Android 5.0 - 13 (API level 21 - 34)
 - armeabi-v7a, arm64-v8a, x86, x86-64
 
 ## Get Started
