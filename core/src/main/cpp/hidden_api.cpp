@@ -16,7 +16,10 @@ bool disable_hidden_api(JNIEnv *env) {
     }
 
     void *addr = AliuHook::elf_img.GetSymbolAddress(
-            "_ZN3artL32VMRuntime_setHiddenApiExemptionsEP7_JNIEnvP7_jclassP13_jobjectArray");
+            "_ZN3artL32VMRuntime_setHiddenApiExemptionsEP7_JNIEnvP7_jclassP13_jobjectArray",
+            true,
+            /* match_prefix: OneUI appends a random set of numbers at the end */
+            true);
     if (!addr) {
         LOGE("HiddenAPI: Didn't find setHiddenApiExemptions");
         return false;
