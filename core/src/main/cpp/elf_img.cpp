@@ -17,7 +17,7 @@
 #include <string>
 #include "log.h"
 #include <fcntl.h>
-#include "xz/xz.h"
+#include "xz.h"
 // Pine changed: namespace
 using namespace pine;
 
