@@ -1,0 +1,3 @@
+[submodule "core/src/main/cpp/xz"]
+	path = core/src/main/cpp/xz
+	url = https://github.com/tukaani-project/xz-embedded.git
