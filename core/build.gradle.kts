@@ -20,17 +20,18 @@ plugins {
 }
 
 dependencies {
-    implementation("org.lsposed.lsplant:lsplant:6.3-aliucord.1")
+    implementation("org.lsposed.lsplant:lsplant:6.4-aliucord.1")
     implementation("io.github.vvb2060.ndk:dobby:1.2")
 
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test:runner:1.4.0")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
 }
 
 android {
-    compileSdk = 33
-    buildToolsVersion = "32.0.0"
+    compileSdk = 35
+    buildToolsVersion = "35.0.0"
     ndkVersion = sdkDirectory.resolve("ndk").listFilesOrdered().last().name
+    namespace = "com.aliucord.hook.core"
 
     buildFeatures {
         buildConfig = false
@@ -39,7 +40,7 @@ android {
 
     defaultConfig {
         minSdk = 21
-        targetSdk = 33
+        targetSdk = 35
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
@@ -52,13 +53,19 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.18.1"
+            version = "3.28.0+"
         }
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 }
 
@@ -83,7 +90,7 @@ tasks.register("buildDexRelease") {
                 desugarClasspath = ClassFileProviderFactory(mutableListOf())
                     .also { closer.register(it) },
                 coreLibDesugarConfig = null,
-                coreLibDesugarOutputKeepRuleFile = null,
+                enableApiModeling = false,
                 messageReceiver = MessageReceiverImpl(
                     SyncOptions.ErrorFormatMode.HUMAN_READABLE,
                     LoggerFactory.getLogger("buildDexRelease")
@@ -98,7 +105,8 @@ tasks.register("buildDexRelease") {
 
         dexBuilder.convert(
             files.stream(),
-            outputs.files.singleFile.toPath()
+            outputs.files.singleFile.toPath(),
+            null
         )
     }
 }

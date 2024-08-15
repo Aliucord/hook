@@ -3,12 +3,13 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdk 35
+    namespace = "com.aliucord.hook.example"
 
     defaultConfig {
         applicationId "com.aliucord.hook.example"
         minSdk 21
-        targetSdk 31
+        targetSdk 35
         versionCode 1
         versionName "1.0"
     }
