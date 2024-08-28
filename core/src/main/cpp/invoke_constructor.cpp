@@ -135,10 +135,12 @@ bool InvokeConstructorWithArgs(JNIEnv *env, jobject instance, jobject constructo
     if (env->ExceptionOccurred()) return false;
 
     auto* unboxedArgs = new jvalue[argsCount];
-    if (!unboxArgs(env, constructor, args, argsCount, unboxedArgs)) return false;
+    if (!unboxArgs(env, constructor, args, argsCount, unboxedArgs)) {
+        delete[] unboxedArgs;
+        return false;
+    }
 
     env->CallVoidMethodA(instance, constructorMethodId, unboxedArgs);
-
     delete[] unboxedArgs;
     return !env->ExceptionOccurred();
 }
