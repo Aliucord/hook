@@ -3,6 +3,7 @@ package com.aliucord.hook;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.os.Build;
@@ -120,18 +121,40 @@ public class UnitTest {
     @Test
     public void shouldAllocateInstance() {
         var instance = XposedBridge.allocateInstance(Dummy.class);
+        assertNotNull("failed to alloc", instance);
         assertFalse(instance.initialized);
     }
 
     @Test
     public void shouldInvokeConstructor() throws Throwable {
         var instance = XposedBridge.allocateInstance(Dummy.class);
-        assertNotNull("failed to alloc", instance);
         assertFalse("constructor not supposed to be called", instance.initialized);
 
         var success = XposedBridge.invokeConstructor(instance, Dummy.class.getDeclaredConstructor());
         assertTrue("invokeConstructor failed", success);
         assertTrue("constructor not called", instance.initialized);
+    }
+
+    @Test
+    public void shouldInvokeSuperConstructor() throws Throwable {
+        var instance = XposedBridge.allocateInstance(Dummy.Dummy2.class);
+        assertFalse("constructor not supposed to be called", instance.initialized);
+
+        var success = XposedBridge.invokeConstructor(instance, Dummy.class.getDeclaredConstructor());
+        assertTrue("invokeConstructor failed", success);
+        assertTrue("supertype ctor not called", instance.initialized);
+        assertNull("subtype ctor should not be called", instance.d);
+    }
+
+    @Test
+    public void shouldInvokeSubConstructor() throws Throwable {
+        var instance = XposedBridge.allocateInstance(Dummy.Dummy2.class);
+        assertFalse("constructor not supposed to be called", instance.initialized);
+
+        var success = XposedBridge.invokeConstructor(instance, Dummy.Dummy2.class.getDeclaredConstructor());
+        assertTrue("invokeConstructor failed", success);
+        assertTrue("supertype ctor not called", instance.initialized);
+        assertEquals("subtype ctor not called", "dummy2", instance.d);
     }
 
     @Test(expected = IllegalArgumentException.class)

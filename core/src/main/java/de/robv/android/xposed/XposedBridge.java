@@ -269,11 +269,11 @@ public class XposedBridge {
      * {@link XposedBridge#allocateInstance(Class)} in order to control when the constructor gets called.
      *
      * @param instance    A class instance.
-     * @param constructor Constructor located on the instance's class.
+     * @param constructor Constructor located on the instance's class or one of its supertypes.
      * @param args        Args matching the constructor, if any. Can be null.
      * @return True if operation was successful
      */
-    public static <T> boolean invokeConstructor(T instance, Constructor<T> constructor, Object... args) {
+    public static <S, T extends S> boolean invokeConstructor(T instance, Constructor<S> constructor, Object... args) {
         Objects.requireNonNull(instance);
         Objects.requireNonNull(constructor);
         if (constructor.isVarArgs()) throw new IllegalArgumentException("varargs parameters are not supported");

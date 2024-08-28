@@ -20,4 +20,11 @@ public class Dummy {
     }
 
     public Dummy(Object... varargs) {}
+
+    public static class Dummy2 extends Dummy {
+        public Dummy2() {
+            super();
+            d = "dummy2";
+        }
+    }
 }
