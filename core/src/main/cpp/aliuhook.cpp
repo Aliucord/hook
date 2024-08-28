@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include "aliuhook.h"
+#include "invoke_constructor.h"
 
 int AliuHook::android_version = -1;
 pine::ElfImg AliuHook::elf_img; // NOLINT(cert-err58-cpp)
@@ -110,6 +111,26 @@ Java_de_robv_android_xposed_XposedBridge_disableHiddenApiRestrictions(JNIEnv *en
     return disable_hidden_api(env);
 }
 
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_de_robv_android_xposed_XposedBridge_allocateInstance0(JNIEnv *env, jclass, jclass clazz) {
+    return env->AllocObject(clazz);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_de_robv_android_xposed_XposedBridge_invokeConstructor0(JNIEnv *env, jclass, jobject instance, jobject constructor, jobjectArray args) {
+    jmethodID constructorMethodId = env->FromReflectedMethod(constructor);
+    if (!constructorMethodId) return JNI_FALSE;
+
+    if (!args) {
+        env->CallVoidMethod(instance, constructorMethodId);
+        return JNI_TRUE;
+    } else {
+        return InvokeConstructorWithArgs(env, instance, constructor, args);
+    }
+}
+
 JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnv *env;
@@ -154,5 +175,19 @@ JNI_OnLoad(JavaVM *vm, void *) {
 
     LOGI("lsplant init finished");
 
+    res = LoadInvokeConstructorCache(env);
+    if (!res) {
+        LOGE("invoke_constructor init failed");
+        return JNI_ERR;
+    }
+
     return JNI_VERSION_1_6;
+}
+
+JNIEXPORT void JNICALL
+JNI_OnUnload(JavaVM *vm, void *) {
+    JNIEnv *env;
+    vm->GetEnv((void **) &env, JNI_VERSION_1_1);
+
+    UnloadInvokeConstructorCache(env);
 }

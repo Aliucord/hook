@@ -2,6 +2,7 @@ package com.aliucord.hook;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.os.Build;
@@ -114,6 +115,68 @@ public class UnitTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotHookField() throws Throwable {
         XposedBridge.hookMethod(UnitTest.class.getDeclaredField("counter"), XC_MethodReplacement.DO_NOTHING);
+    }
+
+    @Test
+    public void shouldAllocateInstance() {
+        var instance = XposedBridge.allocateInstance(Dummy.class);
+        assertFalse(instance.initialized);
+    }
+
+    @Test
+    public void shouldInvokeConstructor() throws Throwable {
+        var instance = XposedBridge.allocateInstance(Dummy.class);
+        assertNotNull("failed to alloc", instance);
+        assertFalse("constructor not supposed to be called", instance.initialized);
+
+        var success = XposedBridge.invokeConstructor(instance, Dummy.class.getDeclaredConstructor());
+        assertTrue("invokeConstructor failed", success);
+        assertTrue("constructor not called", instance.initialized);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotInvokeVarargsConstructor() throws Throwable {
+        XposedBridge.invokeConstructor(new Dummy(), Dummy.class.getDeclaredConstructor(Object[].class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailInvokeConstructorWrongArgCount() throws Throwable {
+        XposedBridge.invokeConstructor(
+                new Dummy(),
+                Dummy.class.getDeclaredConstructor(),
+                "balls"
+        );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailInvokeConstructorWrongArgs() throws Throwable {
+        var constructor = Dummy.class.getDeclaredConstructor(Object.class, int.class, Integer.class, String.class);
+        XposedBridge.invokeConstructor(
+                new Dummy(),
+                constructor,
+                "balls",
+                Integer.valueOf(1),
+                "ballsv2",
+                new Object()
+        );
+    }
+
+    @Test
+    public void shouldInvokeArgsConstructor() throws Throwable {
+        var a = new Object();
+        var b = 42;
+        var c = Integer.valueOf(420);
+        var d = "balls";
+
+        var instance = XposedBridge.allocateInstance(Dummy.class);
+        var constructor = Dummy.class.getDeclaredConstructor(Object.class, int.class, Integer.class, String.class);
+        var success = XposedBridge.invokeConstructor(instance, constructor, a, b, c, d);
+        assertTrue("invokeConstructor failed", success);
+        assertFalse("wrong constructor called", instance.initialized);
+        assertEquals("a does not match", a, instance.a);
+        assertEquals("b does not match", b, instance.b);
+        assertEquals("c does not match", c, instance.c);
+        assertEquals("d does not match", d, instance.d);
     }
 
     @Test
