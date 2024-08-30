@@ -8,6 +8,10 @@ from original Xposed and it should work with almost no modificiations.
 
 Additionally, XposedBridge contains these new methods:
 
+- `allocateInstance` - Allocates a class instance without calling any constructors
+   Can be used as a simpler alternative to `sun.misc.Unsafe#allocateInstance`
+- `invokeConstructor` - Invokes a constructor for an existing instance, most useful in conjunction
+   raw instance allocation.
 - `makeClassInheritable` - Makes a final class inheritable, see LSPlant doc for more info
 - `deoptimizeMethod` - Deoptimises method to solve inline issues, see LSPlant doc for more info
 - `disableProfileSaver` - Disables Android Profile Saver to try to prevent ahead of time compilation

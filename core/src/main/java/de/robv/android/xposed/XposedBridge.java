@@ -42,6 +42,10 @@ public class XposedBridge {
 
     private static native boolean makeClassInheritable0(Class<?> target);
 
+    private static native Object allocateInstance0(Class<?> clazz);
+
+    private static native boolean invokeConstructor0(Object instance, Constructor<?> constructor, Object[] args);
+
     // Not used for now
     private static native boolean isHooked0(Member target);
 
@@ -246,6 +250,35 @@ public class XposedBridge {
             ctor.setAccessible(true);
             return ctor.newInstance(args);
         }
+    }
+
+    /**
+     * Allocate a class instance without calling any constructors.
+     *
+     * @param clazz Target class to allocate
+     * @noinspection unchecked
+     */
+    public static <T> T allocateInstance(Class<T> clazz) {
+        Objects.requireNonNull(clazz);
+        return (T) allocateInstance0(clazz);
+    }
+
+    /**
+     * Invoke a constructor for an already existing instance.
+     * This is most useful in conjunction with {@code sun.misc.Unsafe#allocateInstance(Class)} or
+     * {@link XposedBridge#allocateInstance(Class)} in order to control when the constructor gets called.
+     *
+     * @param instance    A class instance.
+     * @param constructor Constructor located on the instance's class or one of its supertypes.
+     * @param args        Args matching the constructor, if any. Can be null.
+     * @return True if operation was successful
+     */
+    public static <S, T extends S> boolean invokeConstructor(T instance, Constructor<S> constructor, Object... args) {
+        Objects.requireNonNull(instance);
+        Objects.requireNonNull(constructor);
+        if (constructor.isVarArgs()) throw new IllegalArgumentException("varargs parameters are not supported");
+        if (args.length == 0) args = null;
+        return invokeConstructor0(instance, constructor, args);
     }
 
     /**
