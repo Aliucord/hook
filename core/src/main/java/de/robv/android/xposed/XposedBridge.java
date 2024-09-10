@@ -325,7 +325,7 @@ public class XposedBridge {
 
         public synchronized boolean remove(E e) {
             Object[] snapshot = elements;
-            int index = indexOf(e);
+            int index = indexOf(snapshot, e);
             if (index == -1)
                 return false;
 
@@ -336,10 +336,9 @@ public class XposedBridge {
             return true;
         }
 
-        private int indexOf(Object o) {
-            Object[] snapshot = elements;
-            for (int i = 0; i < snapshot.length; i++) {
-                if (o.equals(snapshot[i]))
+        private static int indexOf(Object[] arr, Object o) {
+            for (int i = 0; i < arr.length; i++) {
+                if (o.equals(arr[i]))
                     return i;
             }
             return -1;
