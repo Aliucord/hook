@@ -10,10 +10,13 @@
 
 package de.robv.android.xposed;
 
+import android.os.Build;
 import android.util.Log;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings({"unused", "JavaDoc"})
 public class XposedBridge {
@@ -31,7 +34,7 @@ public class XposedBridge {
 
     private static final Object[] EMPTY_ARRAY = new Object[0];
 
-    private static final Map<Member, HookInfo> hookRecords = new HashMap<>();
+    private static final ConcurrentHashMap<Member, HookInfo> hookRecords = new ConcurrentHashMap<>();
     private static final Method callbackMethod;
 
     private static native Method hook0(Object context, Member original, Method callback);
@@ -124,21 +127,35 @@ public class XposedBridge {
      */
     public static XC_MethodHook.Unhook hookMethod(Member method, XC_MethodHook callback) {
         checkMethod(method);
-        if (callback == null) throw new NullPointerException("callback must not be null");
+        Objects.requireNonNull(callback, "callback");
 
         HookInfo hookRecord;
-        synchronized (hookRecords) {
+        final var initializing = new AtomicBoolean(false);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            hookRecord = hookRecords.computeIfAbsent(method, k -> {
+                initializing.set(true);
+                return new HookInfo(method);
+            });
+        } else {
+            HookInfo newRecord = null;
             hookRecord = hookRecords.get(method);
-            if (hookRecord == null) {
-                hookRecord = new HookInfo(method);
-                var backup = hook0(hookRecord, method, callbackMethod);
-                if (backup == null) throw new IllegalStateException("Failed to hook method");
-                hookRecord.backup = backup;
-                hookRecords.put(method, hookRecord);
-            }
+            hookRecord = hookRecord != null ? hookRecord : (newRecord = new HookInfo(method));
+            hookRecord = hookRecords.putIfAbsent(method, hookRecord);
+            initializing.set(newRecord == hookRecord);
         }
 
+        // noinspection ConstantConditions
         hookRecord.callbacks.add(callback);
+
+        if (initializing.get()) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (hookRecord) {
+                hookRecord.backup = hook0(hookRecord, method, callbackMethod);
+                if (hookRecord.backup == null)
+                    throw new IllegalStateException("Failed to hook method");
+            }
+        }
 
         return callback.new Unhook(method);
     }
@@ -188,13 +205,15 @@ public class XposedBridge {
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public static void unhookMethod(Member method, XC_MethodHook callback) {
-        synchronized (hookRecords) {
-            var record = hookRecords.get(method);
-            if (record != null) {
-                record.callbacks.remove(callback);
-                if (record.callbacks.size() == 0) {
-                    hookRecords.remove(method);
+        var hookRecord = hookRecords.get(method);
+        if (hookRecord == null) return;
+
+        if (hookRecord.callbacks.remove(callback) && hookRecord.callbacks.size() == 0) {
+            synchronized (hookRecord) {
+                if (hookRecord.backup != null) {
                     unhook0(method);
+                    hookRecord.backup = null;
+                    hookRecords.remove(method);
                 }
             }
         }
@@ -274,69 +293,64 @@ public class XposedBridge {
      * @return True if operation was successful
      */
     public static <S, T extends S> boolean invokeConstructor(T instance, Constructor<S> constructor, Object... args) {
-        Objects.requireNonNull(instance);
-        Objects.requireNonNull(constructor);
+        Objects.requireNonNull(instance, "instance");
+        Objects.requireNonNull(constructor, "constructor");
         if (constructor.isVarArgs()) throw new IllegalArgumentException("varargs parameters are not supported");
         if (args.length == 0) args = null;
         return invokeConstructor0(instance, constructor, args);
     }
 
     /**
+     * Simplified version of {@link java.util.concurrent.CopyOnWriteArrayList}
      * @hide
      */
-    public static final class CopyOnWriteSortedSet<E> {
-        private transient volatile Object[] elements = EMPTY_ARRAY;
+    public static final class CopyOnWriteArrayList<E> {
+        private volatile Object[] elements = EMPTY_ARRAY;
 
-        // Aliucord added
+        public Object[] getSnapshot() {
+            return elements;
+        }
+
         public int size() {
             return elements.length;
         }
 
-        @SuppressWarnings("UnusedReturnValue")
-        public synchronized boolean add(E e) {
-            int index = indexOf(e);
-            if (index >= 0)
-                return false;
-
-            Object[] newElements = new Object[elements.length + 1];
-            System.arraycopy(elements, 0, newElements, 0, elements.length);
-            newElements[elements.length] = e;
-            Arrays.sort(newElements);
+        public synchronized void add(E e) {
+            Object[] snapshot = elements;
+            Object[] newElements = new Object[snapshot.length + 1];
+            System.arraycopy(snapshot, 0, newElements, 0, snapshot.length);
+            newElements[snapshot.length] = e;
             elements = newElements;
-            return true;
         }
 
-        @SuppressWarnings("UnusedReturnValue")
         public synchronized boolean remove(E e) {
+            Object[] snapshot = elements;
             int index = indexOf(e);
             if (index == -1)
                 return false;
 
-            Object[] newElements = new Object[elements.length - 1];
-            System.arraycopy(elements, 0, newElements, 0, index);
-            System.arraycopy(elements, index + 1, newElements, index, elements.length - index - 1);
+            Object[] newElements = new Object[snapshot.length - 1];
+            System.arraycopy(snapshot, 0, newElements, 0, index);
+            System.arraycopy(snapshot, index + 1, newElements, index, snapshot.length - index - 1);
             elements = newElements;
             return true;
         }
 
         private int indexOf(Object o) {
-            for (int i = 0; i < elements.length; i++) {
-                if (o.equals(elements[i]))
+            Object[] snapshot = elements;
+            for (int i = 0; i < snapshot.length; i++) {
+                if (o.equals(snapshot[i]))
                     return i;
             }
             return -1;
-        }
-
-        public Object[] getSnapshot() {
-            return elements;
         }
     }
 
     // Aliucord changed: public, so that it can be passed as lsplant context object
     public static class HookInfo {
         Member backup;
+        final CopyOnWriteArrayList<XC_MethodHook> callbacks = new CopyOnWriteArrayList<>();
         private final Member method;
-        final CopyOnWriteSortedSet<XC_MethodHook> callbacks = new CopyOnWriteSortedSet<>();
         private final boolean isStatic;
         private final Class<?> returnType;
 
