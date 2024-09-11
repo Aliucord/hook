@@ -301,10 +301,10 @@ public class XposedBridge {
     }
 
     /**
-     * Simplified version of {@link java.util.concurrent.CopyOnWriteArrayList}
+     * Simplified version of {@link java.util.concurrent.CopyOnWriteArrayList} with sorting
      * @hide
      */
-    public static final class CopyOnWriteArrayList<E> {
+    public static final class CopyOnWriteSortedList<E> {
         private volatile Object[] elements = EMPTY_ARRAY;
 
         public Object[] getSnapshot() {
@@ -320,6 +320,8 @@ public class XposedBridge {
             Object[] newElements = new Object[snapshot.length + 1];
             System.arraycopy(snapshot, 0, newElements, 0, snapshot.length);
             newElements[snapshot.length] = e;
+            if (newElements.length >= 2)
+                Arrays.sort(newElements);
             elements = newElements;
         }
 
@@ -348,7 +350,7 @@ public class XposedBridge {
     // Aliucord changed: public, so that it can be passed as lsplant context object
     public static class HookInfo {
         Member backup;
-        final CopyOnWriteArrayList<XC_MethodHook> callbacks = new CopyOnWriteArrayList<>();
+        final CopyOnWriteSortedList<XC_MethodHook> callbacks = new CopyOnWriteSortedList<>();
         private final Member method;
         private final boolean isStatic;
         private final Class<?> returnType;
