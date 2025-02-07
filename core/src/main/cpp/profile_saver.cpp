@@ -40,6 +40,13 @@ bool disable_profile_saver() {
             symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEbbPt";
         }
         process_profiling_info = AliuHook::elf_img.GetSymbolAddress(symbol);
+
+        // https://android.googlesource.com/platform/art/+/android15-qpr1-release/runtime/jit/profile_saver.cc#767
+        // Android 15 QPR1 changed back to the same symbol as API <31
+        if (!process_profiling_info && AliuHook::android_version >= 35) {
+            symbol = "_ZN3art12ProfileSaver20ProcessProfilingInfoEbPt";
+            process_profiling_info = AliuHook::elf_img.GetSymbolAddress(symbol);
+        }
     }
 
     if (!process_profiling_info) {
