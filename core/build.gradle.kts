@@ -123,6 +123,7 @@ afterEvaluate {
             register(project.name, MavenPublication::class.java) {
                 group = "com.aliucord"
                 artifactId = "Aliuhook"
+                version = "1.1.0"
 
                 from(components["release"])
             }

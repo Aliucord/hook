@@ -1,4 +1,4 @@
-# AliuHook
+# AliuHook ![Maven metadata URL](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.aliucord.com%2Fsnapshots%2Fcom%2Faliucord%2FAliuhook%2Fmaven-metadata.xml)
 
 Java Xposed Api for [LSPlant](https://github.com/LSPosed/LSPlant)
 
@@ -34,8 +34,9 @@ repositories {
 }
 
 dependencies {
-    // or change main-SNAPSHOT to short commit hash to target a specific commit
-    implementation "com.aliucord:Aliuhook:main-SNAPSHOT"
+    // The dependency version can be changed to `main-SNAPSHOT` to target the latest build,
+    // or a short git commit hash to target a specific commit build.
+    implementation "com.aliucord:Aliuhook:1.1.0"
 }
 ```
 
