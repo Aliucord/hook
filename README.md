@@ -36,7 +36,7 @@ repositories {
 dependencies {
     // The dependency version can be changed to `main-SNAPSHOT` to target the latest build,
     // or a short git commit hash to target a specific commit build.
-    implementation "com.aliucord:Aliuhook:1.1.0"
+    implementation "com.aliucord:Aliuhook:1.1.1"
 }
 ```
 
