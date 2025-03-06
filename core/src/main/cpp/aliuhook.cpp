@@ -141,19 +141,14 @@ JNI_OnLoad(JavaVM *vm, void *) {
     page_size_ = static_cast<const size_t>(sysconf(_SC_PAGESIZE));
 
     {
-        char version_str[PROP_VALUE_MAX];
-        if (!__system_property_get("ro.build.version.sdk", version_str)) {
-            LOGE("Failed to obtain SDK int");
-            return JNI_ERR;
-        }
-        long version = std::strtol(version_str, nullptr, 10);
+        int api_level = android_get_device_api_level();
 
-        if (version == 0) {
-            LOGE("Invalid SDK int %s", version_str);
+        if (api_level <= 0) {
+            LOGE("Invalid SDK int %i", api_level);
             return JNI_ERR;
         }
 
-        AliuHook::init(static_cast<int>(version));
+        AliuHook::init(static_cast<int>(api_level));
     }
 
     lsplant::InitInfo initInfo{
@@ -175,7 +170,7 @@ JNI_OnLoad(JavaVM *vm, void *) {
 
     LOGI("lsplant init finished");
 
-    res = LoadInvokeConstructorCache(env);
+    res = LoadInvokeConstructorCache(env, AliuHook::android_version);
     if (!res) {
         LOGE("invoke_constructor init failed");
         return JNI_ERR;

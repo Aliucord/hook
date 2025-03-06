@@ -7,7 +7,7 @@
 
 #include "jni.h"
 
-bool LoadInvokeConstructorCache(JNIEnv*);
+bool LoadInvokeConstructorCache(JNIEnv *en, int android_version);
 
 void UnloadInvokeConstructorCache(JNIEnv*);
 

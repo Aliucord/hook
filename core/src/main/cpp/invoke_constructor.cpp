@@ -3,6 +3,7 @@
 //
 
 #include "invoke_constructor.h"
+#include "aliuhook.h"
 
 // Based on https://github.com/toolfactory/narcissus/blob/c81c3d0a6f0fb5ee8ab444d170db21ff7fe8a7ad/src/main/c/narcissus.c
 
@@ -38,12 +39,16 @@ jclass Double_class;
 jclass double_class;
 jmethodID Double_doubleValue_methodID;
 
+jclass Executable_class;
 jmethodID Executable_getParameterTypes_methodID;
+
+jclass AbstractMethod_class;
+jmethodID AbstractMethod_getParameterTypes_methodID;
 
 void throwIllegalArgumentException(JNIEnv* env, const char* message);
 bool unboxArgs(JNIEnv *env, jobject method, jobjectArray args, jsize argsCount, jvalue* args_out);
 
-bool LoadInvokeConstructorCache(JNIEnv *env) {
+bool LoadInvokeConstructorCache(JNIEnv *env, int android_version) {
     Integer_class = (jclass)env->NewGlobalRef(env->FindClass("java/lang/Integer"));
     if (env->ExceptionOccurred()) return false;
     int_class = (jclass)env->NewGlobalRef(env->GetStaticObjectField(Integer_class, env->GetStaticFieldID(Integer_class, "TYPE", "Ljava/lang/Class;")));
@@ -100,10 +105,20 @@ bool LoadInvokeConstructorCache(JNIEnv *env) {
     Double_doubleValue_methodID = env->GetMethodID(Double_class, "doubleValue", "()D");
     if (env->ExceptionOccurred()) return false;
 
-    jclass Executable_class = env->FindClass("java/lang/reflect/Executable");
-    if (env->ExceptionOccurred()) return false;
-    Executable_getParameterTypes_methodID = env->GetMethodID(Executable_class, "getParameterTypes", "()[Ljava/lang/Class;");
-    if (env->ExceptionOccurred()) return false;
+    if (android_version >= 26) {
+        // https://cs.android.com/android/_/android/platform/libcore/+/e1f193f0f7ccd8a3c0557ec93055140c68546aa9
+        // https://cs.android.com/android/_/android/platform/libcore/+/refs/tags/android-8.0.0_r1:ojluni/src/main/java/java/lang/reflect/Executable.java;l=222;drc=e77a467884a8b323a1ac6a229f06f9a032b141b5
+        Executable_class = env->FindClass("java/lang/reflect/Executable");
+        if (env->ExceptionOccurred()) return false;
+        Executable_getParameterTypes_methodID = env->GetMethodID(Executable_class, "getParameterTypes", "()[Ljava/lang/Class;");
+        if (env->ExceptionOccurred()) return false;
+    } else {
+        // https://cs.android.com/android/_/android/platform/libcore/+/refs/tags/android-7.0.0_r1:libart/src/main/java/java/lang/reflect/AbstractMethod.java;l=160;drc=f04099d77872a0742db6f67263e7edc0828a8af6
+        AbstractMethod_class = env->FindClass("java/lang/reflect/AbstractMethod");
+        if (env->ExceptionOccurred()) return false;
+        AbstractMethod_getParameterTypes_methodID = env->GetMethodID(AbstractMethod_class, "getParameterTypes", "()[Ljava/lang/Class;");
+        if (env->ExceptionOccurred()) return false;
+    }
 
     return true;
 }
@@ -125,6 +140,8 @@ void UnloadInvokeConstructorCache(JNIEnv* env) {
     env->DeleteGlobalRef(float_class);
     env->DeleteGlobalRef(Double_class);
     env->DeleteGlobalRef(double_class);
+    env->DeleteGlobalRef(Executable_class);
+    env->DeleteGlobalRef(AbstractMethod_class);
 }
 
 bool InvokeConstructorWithArgs(JNIEnv *env, jobject instance, jobject constructor, jobjectArray args) {
@@ -148,7 +165,11 @@ bool InvokeConstructorWithArgs(JNIEnv *env, jobject instance, jobject constructo
 // Unbox a jobjectArray of method invocation args into a jvalue array.
 bool unboxArgs(JNIEnv *env, jobject method, jobjectArray args, jsize argsCount, jvalue* args_out) {
     // Get parameter types
-    auto parameterTypes = (jobjectArray)env->CallObjectMethod(method, Executable_getParameterTypes_methodID);
+    auto parameterTypes = (jobjectArray) env->CallObjectMethod(
+            method,
+            AliuHook::android_version >= 26
+            ? Executable_getParameterTypes_methodID
+            : AbstractMethod_getParameterTypes_methodID);
     if (env->ExceptionOccurred()) return false;
 
     jsize parameterCount = env->GetArrayLength(parameterTypes);
