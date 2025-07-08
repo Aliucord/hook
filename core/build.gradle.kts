@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.android.build.gradle.internal.errors.MessageReceiverImpl
 import com.android.build.gradle.options.SyncOptions
 import com.android.build.gradle.tasks.BundleAar
@@ -7,7 +9,6 @@ import com.android.builder.dexing.DexArchiveBuilder
 import com.android.builder.dexing.DexParameters
 import com.android.builder.dexing.r8.ClassFileProviderFactory
 import com.google.common.io.Closer
-import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -20,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.lsposed.lsplant:lsplant:6.4-aliucord.2")
+    implementation("org.lsposed.lsplant:lsplant:6.4-aliucord.3")
     implementation("io.github.vvb2060.ndk:dobby:1.2")
 
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -28,9 +29,9 @@ dependencies {
 }
 
 android {
-    compileSdk = 35
-    buildToolsVersion = "35.0.0"
-    ndkVersion = sdkDirectory.resolve("ndk").listFilesOrdered().last().name
+    compileSdk = 36
+    buildToolsVersion = "36.0.0"
+    ndkVersion = "29.0.13599879" // r28+ compiles for 16-KiB aligned pages by default
     namespace = "com.aliucord.hook.core"
 
     buildFeatures {
@@ -40,7 +41,6 @@ android {
 
     defaultConfig {
         minSdk = 21
-        targetSdk = 35
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
@@ -71,7 +71,7 @@ android {
 
 // fuck you agp
 tasks.register("buildDexRelease") {
-    outputs.dir(buildDir.resolve("intermediates/dex/"))
+    outputs.dir(layout.buildDirectory.dir("intermediates/dex/"))
 
     val compileTask = project.tasks.getByName("compileDebugJavaWithJavac") as AbstractCompile
     dependsOn(compileTask)
@@ -98,13 +98,13 @@ tasks.register("buildDexRelease") {
             )
         )
 
-        val files = inputs.files.files.map {
+        val files: Stream<ClassFileEntry> = inputs.files.files.stream().map {
             val bytes = it.readBytes()
-            MemoryClassFileEntry(it.name, bytes.size.toLong(), bytes) as ClassFileEntry
+            MemoryClassFileEntry(it.name, bytes.size.toLong(), bytes)
         }
 
         dexBuilder.convert(
-            files.stream(),
+            files,
             outputs.files.singleFile.toPath(),
             null
         )

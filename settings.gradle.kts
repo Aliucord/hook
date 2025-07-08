@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -5,16 +7,20 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id("com.android.application") version "8.5.2"
-        id("com.android.library") version "8.5.2"
+        id("com.android.application") version "8.11.0"
+        id("com.android.library") version "8.11.0"
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven("https://maven.aliucord.com/snapshots")
+        maven {
+            name = "aliucord"
+            url = uri("https://maven.aliucord.com/snapshots")
+        }
     }
 }
 
