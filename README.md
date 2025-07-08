@@ -23,7 +23,7 @@ Additionally, XposedBridge contains these new methods:
 
 ## Supported Android versions (same as LSPlant)
 
-- Android 5.0 - 15 (API level 21 - 35)
+- Android 5 - 15 (API level 21 - 35)
 - armeabi-v7a, arm64-v8a, x86, x86-64
 
 ## Get Started
@@ -36,7 +36,7 @@ repositories {
 dependencies {
     // The dependency version can be changed to `main-SNAPSHOT` to target the latest build,
     // or a short git commit hash to target a specific commit build.
-    implementation "com.aliucord:Aliuhook:1.1.1"
+    implementation "com.aliucord:Aliuhook:1.1.3"
 }
 ```
 
