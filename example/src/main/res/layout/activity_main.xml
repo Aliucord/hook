@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:paddingVertical="40dp"
+    android:paddingHorizontal="16dp"
     tools:context=".MainActivity">
 
     <TextView
