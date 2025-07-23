@@ -21,7 +21,8 @@ plugins {
 }
 
 dependencies {
-    implementation("org.lsposed.lsplant:lsplant:6.4-aliucord.3")
+    @Suppress("NewerVersionAvailable")
+    implementation("org.lsposed.lsplant:lsplant:6.4-aliucord.4")
     implementation("io.github.vvb2060.ndk:dobby:1.2")
 
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -123,7 +124,7 @@ afterEvaluate {
             register(project.name, MavenPublication::class.java) {
                 group = "com.aliucord"
                 artifactId = "Aliuhook"
-                version = "1.1.3"
+                version = "1.1.4"
 
                 from(components["release"])
             }
