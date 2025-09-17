@@ -19,7 +19,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven {
             name = "aliucord"
-            url = uri("https://maven.aliucord.com/snapshots")
+            url = uri("https://maven.aliucord.com/releases")
         }
     }
 }

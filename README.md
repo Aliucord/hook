@@ -30,7 +30,7 @@ Additionally, XposedBridge contains these new methods:
 
 ```gradle
 repositories {
-    maven("https://maven.aliucord.com/snapshots")
+    maven("https://maven.aliucord.com/releases")
 }
 
 dependencies {

@@ -132,17 +132,28 @@ afterEvaluate {
             repositories {
                 val username = System.getenv("MAVEN_USERNAME")
                 val password = System.getenv("MAVEN_PASSWORD")
+                val releaseUsername = System.getenv("MAVEN_RELEASE_USERNAME")
+                val releasePassword = System.getenv("MAVEN_RELEASE_PASSWORD")
 
+                if (releaseUsername != null && releasePassword != null) {
+                    maven {
+                        setUrl("https://maven.aliucord.com/releases")
+                        credentials {
+                            this.username = releaseUsername
+                            this.password = releasePassword
+                        }
+                    }
+                }
+
+                // Publish to snapshots repo for backwards compatibility
                 if (username != null && password != null) {
                     maven {
+                        setUrl("https://maven.aliucord.com/snapshots")
                         credentials {
                             this.username = username
                             this.password = password
                         }
-                        setUrl("https://maven.aliucord.com/snapshots")
                     }
-                } else {
-                    mavenLocal()
                 }
             }
         }

@@ -1,7 +1,8 @@
-name: Publish
+name: Build
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   publish:
@@ -30,9 +31,4 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
           
           rm -rf $ANDROID_HOME/cmake
-          ./gradlew :core:publish
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          MAVEN_RELEASE_USERNAME: ${{ secrets.MAVEN_RELEASE_USERNAME }}
-          MAVEN_RELEASE_PASSWORD: ${{ secrets.MAVEN_RELEASE_PASSWORD }}
+          ./gradlew :core:publishToMavenLocal
