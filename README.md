@@ -31,6 +31,10 @@ Additionally, XposedBridge contains these new methods:
 - LSPlant supports Android 5 - 17 (API level 21 - 37).
 - armeabi-v7a, arm64-v8a, x86, x86-64
 
+Verified for this fork: release builds for all four ABIs and all 17 instrumentation
+tests on an Android 17 / API 37 x86_64 emulator (4-KiB pages). Physical devices,
+older Android releases, and runtime behavior on 16-KiB pages have not been tested.
+
 ## Get Started
 
 Build and publish this fork to your local Maven repository (JDK 17 or newer and an

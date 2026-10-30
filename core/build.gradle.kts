@@ -39,6 +39,10 @@ android {
         prefab = true
     }
 
+    testOptions {
+        targetSdk = 36
+    }
+
     defaultConfig {
         minSdk = 21
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
