@@ -30,10 +30,6 @@ Additionally, XposedBridge contains these new methods:
 - LSPlant supports Android 5 - 17 (API level 21 - 37).
 - armeabi-v7a, arm64-v8a, x86, x86-64
 
-Verified: release builds for all four ABIs and all 17 instrumentation
-tests on an Android 17 / API 37 x86_64 emulator (4-KiB pages). Physical devices,
-older Android releases, and runtime behavior on 16-KiB pages have not been tested.
-
 ## Get Started
 
 Build and publish AliuHook to your local Maven repository (JDK 17 or newer and an
@@ -42,8 +38,6 @@ Android SDK are required). Install CMake `4.1.2` with the SDK Manager
 Gradle installs NDK `30.0.16248370` if needed.
 
 ```sh
-git clone https://github.com/BYxarek/hook.git
-cd hook
 git submodule update --init core/src/main/cpp/xz core/src/main/cpp/lsplant
 git -C core/src/main/cpp/lsplant submodule update --init --recursive lsplant/src/main/jni/external/dex_builder
 ./gradlew :core:publishToMavenLocal
