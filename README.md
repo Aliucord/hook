@@ -1,11 +1,10 @@
-# AliuHook (API 37 fork)
+# AliuHook
 
 Java Xposed Api for [LSPlant](https://github.com/LSPosed/LSPlant)
 
-Fork of [Aliucord/hook](https://github.com/Aliucord/hook), built with LSPlant
-[`6ac2280`](https://github.com/LSPosed/LSPlant/commit/6ac2280d8d88e14f0864c26ac97c1dc96713bde1).
-LSPlant is pinned as a source submodule and linked statically into `libaliuhook.so`;
-the old `6.4-aliucord.4` Maven dependency is no longer used.
+LSPlant is built from source at commit
+[`6ac2280`](https://github.com/LSPosed/LSPlant/commit/6ac2280d8d88e14f0864c26ac97c1dc96713bde1)
+and linked statically into `libaliuhook.so`.
 
 Please note that this is only a partial implementation of Xposed, since we only need method hooking.
 Thus, only XposedBridge and hook classes are implemented. If you need the rest, just copy paste it
@@ -31,13 +30,13 @@ Additionally, XposedBridge contains these new methods:
 - LSPlant supports Android 5 - 17 (API level 21 - 37).
 - armeabi-v7a, arm64-v8a, x86, x86-64
 
-Verified for this fork: release builds for all four ABIs and all 17 instrumentation
+Verified: release builds for all four ABIs and all 17 instrumentation
 tests on an Android 17 / API 37 x86_64 emulator (4-KiB pages). Physical devices,
 older Android releases, and runtime behavior on 16-KiB pages have not been tested.
 
 ## Get Started
 
-Build and publish this fork to your local Maven repository (JDK 17 or newer and an
+Build and publish AliuHook to your local Maven repository (JDK 17 or newer and an
 Android SDK are required). Install CMake `4.1.2` with the SDK Manager
 (`sdkmanager "cmake;4.1.2"`) and accept the Android SDK licenses first.
 Gradle installs NDK `30.0.16248370` if needed.
@@ -51,11 +50,11 @@ git -C core/src/main/cpp/lsplant submodule update --init --recursive lsplant/src
 ```
 
 On Windows use `gradlew.bat`. Only the native submodules above are needed;
-LSPlant's upstream test submodules use SSH and are not required to build this fork.
+LSPlant's upstream test submodules use SSH and are not required to build AliuHook.
 The release AAR is also available in `core/build/outputs/aar/core-release.aar`
-and as an artifact of this fork's Build workflow.
+and as an artifact of the Build workflow.
 
-To use the locally published fork:
+To use the locally published library:
 
 ```gradle
 repositories {
