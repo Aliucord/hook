@@ -9,8 +9,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-        with:
-          submodules: 'recursive'
+      - name: Checkout native dependencies
+        run: |
+          git submodule update --init core/src/main/cpp/xz core/src/main/cpp/lsplant
+          git -C core/src/main/cpp/lsplant submodule update --init --recursive lsplant/src/main/jni/external/dex_builder
 
       - name: Setup JDK 17
         uses: actions/setup-java@v4

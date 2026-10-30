@@ -1,10 +1,10 @@
 # For more information about using CMake with Android Studio, read the
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
-cmake_minimum_required(VERSION 3.18.1)
+cmake_minimum_required(VERSION 3.31.6)
 project("aliuhook")
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(xz/linux/lib/xz xz/linux/include/linux xz/userspace)
 
@@ -21,7 +21,8 @@ add_library(aliuhook SHARED
         xz/linux/lib/xz/xz_dec_stream.c
 )
 
-find_package(lsplant REQUIRED CONFIG)
+set(LSPLANT_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+add_subdirectory(lsplant/lsplant/src/main/jni)
 find_package(dobby REQUIRED CONFIG)
 
-target_link_libraries(aliuhook log lsplant::lsplant dobby::dobby)
+target_link_libraries(aliuhook log lsplant_static dobby::dobby)

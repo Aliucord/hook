@@ -1,3 +1,6 @@
 [submodule "core/src/main/cpp/xz"]
 	path = core/src/main/cpp/xz
 	url = https://github.com/tukaani-project/xz-embedded.git
+[submodule "core/src/main/cpp/lsplant"]
+	path = core/src/main/cpp/lsplant
+	url = https://github.com/LSPosed/LSPlant.git

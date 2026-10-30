@@ -21,8 +21,7 @@ plugins {
 }
 
 dependencies {
-    @Suppress("NewerVersionAvailable")
-    implementation("com.aliucord.lsplant:lsplant:6.4-aliucord.4")
+    compileOnly("org.lsposed.libcxx:libcxx-full:30.0.16248370")
     implementation("io.github.vvb2060.ndk:dobby:1.2")
 
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -32,7 +31,7 @@ dependencies {
 android {
     compileSdk = 36
     buildToolsVersion = "36.0.0"
-    ndkVersion = "29.0.13599879" // r28+ compiles for 16-KiB aligned pages by default
+    ndkVersion = "30.0.16248370" // Must match LSPlant's libcxx module providers.
     namespace = "com.aliucord.hook.core"
 
     buildFeatures {
@@ -54,7 +53,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.28.0+"
+            version = "4.1.2"
         }
     }
 
@@ -124,7 +123,7 @@ afterEvaluate {
             register(project.name, MavenPublication::class.java) {
                 group = "com.aliucord"
                 artifactId = "Aliuhook"
-                version = "1.1.4"
+                version = "1.1.4-api37.1"
 
                 from(components["release"])
             }

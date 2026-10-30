@@ -1,6 +1,11 @@
-# AliuHook ![Maven metadata URL](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.aliucord.com%2Fsnapshots%2Fcom%2Faliucord%2FAliuhook%2Fmaven-metadata.xml)
+# AliuHook (API 37 fork)
 
 Java Xposed Api for [LSPlant](https://github.com/LSPosed/LSPlant)
+
+Fork of [Aliucord/hook](https://github.com/Aliucord/hook), built with LSPlant
+[`6ac2280`](https://github.com/LSPosed/LSPlant/commit/6ac2280d8d88e14f0864c26ac97c1dc96713bde1).
+LSPlant is pinned as a source submodule and linked statically into `libaliuhook.so`;
+the old `6.4-aliucord.4` Maven dependency is no longer used.
 
 Please note that this is only a partial implementation of Xposed, since we only need method hooking.
 Thus, only XposedBridge and hook classes are implemented. If you need the rest, just copy paste it
@@ -21,23 +26,47 @@ Additionally, XposedBridge contains these new methods:
   internal Android APIs,
   see https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces
 
-## Supported Android versions (same as LSPlant)
+## Android compatibility
 
-- Android 5 - 15 (API level 21 - 35)
+- LSPlant supports Android 5 - 17 (API level 21 - 37).
 - armeabi-v7a, arm64-v8a, x86, x86-64
 
 ## Get Started
 
+Build and publish this fork to your local Maven repository (JDK 17 or newer and an
+Android SDK are required). Gradle installs NDK `30.0.16248370` and CMake `4.1.2`;
+accept the Android SDK licenses first.
+
+```sh
+git clone https://github.com/BYxarek/hook.git
+cd hook
+git submodule update --init core/src/main/cpp/xz core/src/main/cpp/lsplant
+git -C core/src/main/cpp/lsplant submodule update --init --recursive lsplant/src/main/jni/external/dex_builder
+./gradlew :core:publishToMavenLocal
+```
+
+On Windows use `gradlew.bat`. Only the native submodules above are needed;
+LSPlant's upstream test submodules use SSH and are not required to build this fork.
+The release AAR is also available in `core/build/outputs/aar/core-release.aar`
+and as an artifact of this fork's Build workflow.
+
+To use the locally published fork:
+
 ```gradle
 repositories {
-    maven("https://maven.aliucord.com/releases")
+    mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
-    // The dependency version can be changed to `main-SNAPSHOT` to target the latest build,
-    // or a short git commit hash to target a specific commit build.
-    implementation "com.aliucord:Aliuhook:1.1.3"
+    implementation "com.aliucord:Aliuhook:1.1.4-api37.1"
 }
+```
+
+Run the instrumentation suite with a connected device or emulator:
+
+```sh
+./gradlew :core:connectedDebugAndroidTest
 ```
 
 #### Now you're ready to get hooking! No init needed

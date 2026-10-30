@@ -89,6 +89,24 @@ public class UnitTest {
     }
 
     @Test
+    public void shouldHookConstructor() throws Throwable {
+        var constructor = Dummy.class.getDeclaredConstructor();
+        var unhook = XposedBridge.hookMethod(constructor, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) {
+                assertTrue(((Dummy) param.thisObject).initialized);
+                ((Dummy) param.thisObject).initialized = false;
+            }
+        });
+        try {
+            assertFalse(constructor.newInstance().initialized);
+        } finally {
+            unhook.unhook();
+        }
+        assertTrue(constructor.newInstance().initialized);
+    }
+
+    @Test
     public void shouldReplace() throws Throwable {
         var countMethod = UnitTest.class.getDeclaredMethod("count");
         counter = 0;
