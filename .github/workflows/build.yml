@@ -24,18 +24,14 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: platform-tools
+          packages: 'platform-tools cmake;4.1.2'
 
       - uses: seanmiddleditch/gha-setup-ninja@master
         with:
           version: 1.12.0
 
       - name: Build
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
-          
-          rm -rf $ANDROID_HOME/cmake
-          ./gradlew :core:publishToMavenLocal :core:assembleDebugAndroidTest :example:assembleDebug
+        run: ./gradlew :core:publishToMavenLocal :core:assembleDebugAndroidTest :example:assembleDebug
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4

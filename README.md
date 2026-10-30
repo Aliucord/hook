@@ -34,8 +34,9 @@ Additionally, XposedBridge contains these new methods:
 ## Get Started
 
 Build and publish this fork to your local Maven repository (JDK 17 or newer and an
-Android SDK are required). Gradle installs NDK `30.0.16248370` and CMake `4.1.2`;
-accept the Android SDK licenses first.
+Android SDK are required). Install CMake `4.1.2` with the SDK Manager
+(`sdkmanager "cmake;4.1.2"`) and accept the Android SDK licenses first.
+Gradle installs NDK `30.0.16248370` if needed.
 
 ```sh
 git clone https://github.com/BYxarek/hook.git
