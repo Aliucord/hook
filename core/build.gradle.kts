@@ -71,7 +71,7 @@ android {
 
 // fuck you agp
 tasks.register("buildDexRelease") {
-    outputs.dir(layout.buildDirectory.dir("intermediates/dex/"))
+    outputs.dir(layout.buildDirectory.dir("intermediates/aliuhookDex/release/"))
 
     val compileTask = project.tasks.getByName("compileDebugJavaWithJavac") as AbstractCompile
     dependsOn(compileTask)
